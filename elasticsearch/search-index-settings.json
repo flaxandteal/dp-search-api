@@ -6,7 +6,7 @@
     },
     "analysis": {
       "analyzer": {
-        "default_index": {
+        "default": {
           "tokenizer": "keyword",
           "filter": [
             "trim",
@@ -17,7 +17,6 @@
           "tokenizer": "standard",
           "filter": [
             "lowercase",
-            "standard",
             "stop"
           ]
         },
@@ -26,7 +25,6 @@
           "filter": [
             "lowercase",
             "ons_synonyms",
-            "standard",
             "stop",
             "stem_exclusion",
             "snowball"
@@ -37,7 +35,6 @@
           "filter": [
             "lowercase",
             "ons_synonyms",
-            "standard",
             "stop"
           ]
         },
@@ -45,7 +42,6 @@
           "tokenizer": "standard",
           "filter": [
             "lowercase",
-            "standard",
             "stop",
             "stem_exclusion",
             "snowball"
@@ -57,7 +53,6 @@
           "filter": [
             "lowercase",
             "ons_synonyms",
-            "standard",
             "stop",
             "stem_exclusion",
             "snowball"
@@ -68,7 +63,6 @@
           "char_filter": "clear_dates",
           "filter": [
             "lowercase",
-            "standard",
             "stop",
             "stem_exclusion",
             "snowball"
@@ -215,7 +209,7 @@
               "search_analyzer": "ons_stem",
               "fields": {
                 "title_raw": {
-                  "type": "keywords"
+                  "type": "keyword"
                 },
                 "title_no_stem": {
                   "type": "text",
@@ -269,9 +263,7 @@
           "type": "text",
           "analyzer": "ons_synonym_stem",
           "search_analyzer": "ons_stem",
-          "norms": {
-            "enabled": false
-          }
+          "norms": false
         }
     }
   }
