@@ -35,7 +35,4 @@ require (
 	golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e // indirect
 )
 
-replace (
-	github.com/ONSdigital/dp-api-clients-go/v2 => ../libraries/dp-api-clients-go
-	github.com/ONSdigital/dp-elasticsearch/v2 => ../libraries/dp-elasticsearch
-)
+replace github.com/ONSdigital/dp-api-clients-go/v2 => /Users/bhupendrapathak/go/src/github.com/ONSdigital/dp-api-clients-go

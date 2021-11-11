@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
+	esauth "github.com/ONSdigital/dp-elasticsearch/v2/awsauth"
 	dphttp "github.com/ONSdigital/dp-net/http"
 	"github.com/pkg/errors"
-	esauth "github.com/ONSdigital/dp-elasticsearch/v2/awsauth"
 )
 
 // Client represents an instance of the elasticsearch client

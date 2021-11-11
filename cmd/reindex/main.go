@@ -3,24 +3,25 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
+	"time"
+
 	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	dpelasticsearch "github.com/ONSdigital/dp-elasticsearch/v2/elasticsearch"
 	"github.com/ONSdigital/dp-search-api/config"
 	"github.com/ONSdigital/dp-search-api/elasticsearch"
-	"net/http"
-	"net/url"
-	"os"
-	"time"
 
 	"log"
 	"sync"
 )
 
-const zebedeeURI = "http://localhost:8082"
-
 var (
 	maxConcurrentExtractions = 20
 	maxConcurrentIndexings   = 20
+
+	ctx = context.Background()
+
 )
 
 type zebedeeClient interface {
@@ -44,21 +45,27 @@ type Document struct {
 //}
 
 func main() {
-	ctx := context.Background()
 	cfg, err := config.Get()
 	if err != nil {
-		log.Fatal(ctx, "error retrieving config", err)
-		os.Exit(1)
+		log.Fatalf("error retrieving config: %s", err)
 	}
 
-	zebClient := zebedee.New(zebedeeURI)
+	zebClient := zebedee.New(cfg.ZebedeeURL)
 	esClient := dpelasticsearch.NewClient(cfg.ElasticSearchAPIURL, cfg.SignElasticsearchRequests, 5)
 
+	// get URI from zebedee
 	urisChan := uriProducer(ctx, zebClient)
+
+	// get publishedContents corresponding to URI
 	extractedChan, extractionFailuresChan := docExtractor(ctx, zebClient, urisChan, maxConcurrentExtractions)
+
+	// Transformer
 	transformedChan := docTransformer(extractedChan)
+
+	// reindex ONS Index
 	indexedChan := docIndexer(ctx, esClient, transformedChan, maxConcurrentIndexings)
 
+	// Summarize the re-indexing the elastic search
 	summarize(indexedChan, extractionFailuresChan)
 }
 

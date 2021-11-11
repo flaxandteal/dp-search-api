@@ -10,12 +10,18 @@ GIT_COMMIT=$(shell git rev-parse HEAD)
 VERSION ?= $(shell git tag --points-at HEAD | grep ^v | head -n 1)
 LDFLAGS=-ldflags "-w -s -X 'main.Version=${VERSION}' -X 'main.BuildTime=$(BUILD_TIME)' -X 'main.GitCommit=$(GIT_COMMIT)'"
 
+cb           := reindex
+
 export GOOS?=$(shell go env GOOS)
 export GOARCH?=$(shell go env GOARCH)
 
 .PHONY: all
 all: audit test build
 
+.PHONY: fmt
+fmt:
+	go fmt ./...
+	
 .PHONY: audit
 audit:
 	go list -m all | nancy sleuth
@@ -34,3 +40,12 @@ test:
 	go test -cover -race ./...
 
 .PHONY: build debug test
+
+.PHONY: build-reindex
+build-reindex: fmt
+	cd ./cmd/$(cb); go build
+
+.PHONY: clean-reindex
+clean-reindex: 
+	go mod tidy
+	rm ./cmd/$(cb)/reindex;

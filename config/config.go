@@ -12,11 +12,12 @@ type Config struct {
 	AwsRegion                  string        `envconfig:"AWS_REGION"`
 	AwsService                 string        `envconfig:"AWS_SERVICE"`
 	BindAddr                   string        `envconfig:"BIND_ADDR"`
-	ElasticSearchAPIURL        string        `envconfig:"ELASTIC_SEARCH_URL"`
 	GracefulShutdownTimeout    time.Duration `envconfig:"GRACEFUL_SHUTDOWN_TIMEOUT"`
-	SignElasticsearchRequests  bool          `envconfig:"SIGN_ELASTICSEARCH_REQUESTS"`
 	HealthCheckCriticalTimeout time.Duration `envconfig:"HEALTHCHECK_CRITICAL_TIMEOUT"`
 	HealthCheckInterval        time.Duration `envconfig:"HEALTHCHECK_INTERVAL"`
+	ElasticSearchAPIURL        string        `envconfig:"ELASTIC_SEARCH_URL"`
+	SignElasticsearchRequests  bool          `envconfig:"SIGN_ELASTICSEARCH_REQUESTS"`
+	ZebedeeURL                 string        `envconfig:"ZEBEDEE_URL"`
 }
 
 var cfg *Config
@@ -30,12 +31,13 @@ func Get() (*Config, error) {
 	cfg = &Config{
 		AwsRegion:                  "eu-west-1",
 		AwsService:                 "es",
-		BindAddr:                  ":23900",
-		ElasticSearchAPIURL:       "http://localhost:9200",
-		GracefulShutdownTimeout:   5 * time.Second,
-		SignElasticsearchRequests: false,
-		HealthCheckCriticalTimeout:           90 * time.Second,
-		HealthCheckInterval:                  30 * time.Second,
+		BindAddr:                   ":23900",
+		GracefulShutdownTimeout:    5 * time.Second,
+		HealthCheckCriticalTimeout: 90 * time.Second,
+		HealthCheckInterval:        30 * time.Second,
+		ElasticSearchAPIURL:        "http://localhost:9200",
+		SignElasticsearchRequests:  false,
+		ZebedeeURL:                 "http://localhost:8082",
 	}
 
 	return cfg, envconfig.Process("", cfg)
