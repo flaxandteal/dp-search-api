@@ -11,6 +11,7 @@ require (
 	github.com/ONSdigital/dp-search-data-importer v0.1.1-0.20211110125918-56c246e502f7
 	github.com/ONSdigital/go-ns v0.0.0-20210831102424-ebdecc20fe9e
 	github.com/ONSdigital/log.go/v2 v2.0.9
+	github.com/elastic/go-elasticsearch/v7 v7.10.0
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/pkg/errors v0.9.1
