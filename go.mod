@@ -3,8 +3,8 @@ module github.com/ONSdigital/dp-search-api
 go 1.17
 
 require (
-	github.com/ONSdigital/dp-api-clients-go/v2 v2.3.0
-	github.com/ONSdigital/dp-elasticsearch/v2 v2.2.1
+	github.com/ONSdigital/dp-api-clients-go/v2 v2.5.0
+	github.com/ONSdigital/dp-elasticsearch/v2 v2.3.0
 	github.com/ONSdigital/dp-healthcheck v1.1.3
 	github.com/ONSdigital/dp-net v1.2.0
 	github.com/ONSdigital/dp-search-data-extractor v0.2.1-0.20211111103442-c98a47313ed5
@@ -21,25 +21,23 @@ require (
 
 require (
 	github.com/ONSdigital/dp-api-clients-go v1.43.0 // indirect
-	github.com/ONSdigital/log.go v1.1.0 // indirect
 	github.com/aws/aws-sdk-go v1.38.65 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20210202160940-bed99a852dfe // indirect
-	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519 // indirect
+	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/justinas/alice v1.2.0 // indirect
-	github.com/mattn/go-colorable v0.1.11 // indirect
+	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/tdewolff/parse v2.3.4+incompatible // indirect
 	github.com/tdewolff/test v1.0.6 // indirect
-	golang.org/x/net v0.0.0-20211013171255-e13a2654a71e // indirect
-	golang.org/x/sys v0.0.0-20211013075003-97ac67df715c // indirect
+	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
+	golang.org/x/sys v0.0.0-20211124211545-fe61309f8881 // indirect
 )
 
 replace (
-	github.com/ONSdigital/dp-api-clients-go/v2 => ../libraries/dp-api-clients-go
 	github.com/ONSdigital/dp-elasticsearch/v2 => ../libraries/dp-elasticsearch
 	github.com/ONSdigital/dp-search-data-extractor => ../dp-search-data-extractor
 	github.com/ONSdigital/dp-search-data-importer => ../dp-search-data-importer
