@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -52,6 +53,11 @@ func paramGetBool(params url.Values, key string, defaultValue bool) bool {
 	return value == "true"
 }
 
+type Category struct {
+	S float64 `json:"s"`
+	C []string `json:"c"`
+}
+
 // SearchHandlerFunc returns a http handler function handling search api requests.
 func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSearcher, transformer ResponseTransformer) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
@@ -59,7 +65,23 @@ func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSea
 		params := req.URL.Query()
 
 		q := params.Get("q")
+		use_categories := params.Get("c")
 		sort := paramGet(params, "sort", "relevance")
+
+		client := &http.Client{}
+		uri := "http://localhost:80/categories?query=%s" + url.QueryEscape(q)
+		resp, err := client.Get(uri)
+		var categories []Category
+		categories = []Category{}
+		if err == nil {
+			defer resp.Body.Close()
+			body, err := ioutil.ReadAll(resp.Body)
+
+			err = json.Unmarshal(body, &categories)
+			if err != nil {
+				log.Warn(ctx, "Could not unmarshal categories")
+			}
+		}
 
 		highlight := paramGetBool(params, "highlight", true)
 
@@ -103,7 +125,12 @@ func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSea
 
 		typesParam := paramGet(params, "content_type", defaultContentTypes)
 
-		formattedQuery, err := queryBuilder.BuildSearchQuery(ctx, q, typesParam, sort, limit, offset)
+		topic := []string{}
+		if use_categories != "1" && len(categories) > 0 {
+			topic = categories[0].C
+			log.Warn(ctx, topic[0])
+		}
+		formattedQuery, err := queryBuilder.BuildSearchQuery(ctx, q, typesParam, sort, limit, offset, topic)
 		if err != nil {
 			log.Error(ctx, "creation of search query failed", err, log.Data{"q": q, "sort": sort, "limit": limit, "offset": offset})
 			http.Error(w, "Failed to create search query", http.StatusInternalServerError)

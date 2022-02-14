@@ -40,7 +40,7 @@ type ElasticSearcher interface {
 
 // QueryBuilder provides methods for the search package
 type QueryBuilder interface {
-	BuildSearchQuery(ctx context.Context, q, contentTypes, sort string, limit, offset int) ([]byte, error)
+	BuildSearchQuery(ctx context.Context, q, contentTypes, sort string, limit, offset int, topic []string) ([]byte, error)
 }
 
 // ResponseTransformer provides methods for the transform package

@@ -6,7 +6,7 @@
 {{if or .URIPrefix .Topic .TopicWildcard}}
   { "bool": { "should": [
 
-  {{ template "contentFilterOnURIPrefix.tmpl" . }}
+  {{ template "contentFilterOnUriPrefix.tmpl" . }}
   {{ template "contentFilterOnTopic.tmpl" . }}
   {{ template "contentFilterOnTopicWildcard.tmpl" . }}
 

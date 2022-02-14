@@ -211,7 +211,7 @@ var _ QueryBuilder = &QueryBuilderMock{}
 //     }
 type QueryBuilderMock struct {
 	// BuildSearchQueryFunc mocks the BuildSearchQuery method.
-	BuildSearchQueryFunc func(ctx context.Context, q string, contentTypes string, sort string, limit int, offset int) ([]byte, error)
+	BuildSearchQueryFunc func(ctx context.Context, q string, contentTypes string, sort string, limit int, offset int, topic []string) ([]byte, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -229,12 +229,14 @@ type QueryBuilderMock struct {
 			Limit int
 			// Offset is the offset argument value.
 			Offset int
+			// Topic
+			Topic []string
 		}
 	}
 }
 
 // BuildSearchQuery calls BuildSearchQueryFunc.
-func (mock *QueryBuilderMock) BuildSearchQuery(ctx context.Context, q string, contentTypes string, sort string, limit int, offset int) ([]byte, error) {
+func (mock *QueryBuilderMock) BuildSearchQuery(ctx context.Context, q string, contentTypes string, sort string, limit int, offset int, topic []string) ([]byte, error) {
 	if mock.BuildSearchQueryFunc == nil {
 		panic("QueryBuilderMock.BuildSearchQueryFunc: method is nil but QueryBuilder.BuildSearchQuery was just called")
 	}
@@ -245,6 +247,7 @@ func (mock *QueryBuilderMock) BuildSearchQuery(ctx context.Context, q string, co
 		Sort         string
 		Limit        int
 		Offset       int
+		Topic        []string
 	}{
 		Ctx:          ctx,
 		Q:            q,
@@ -252,11 +255,12 @@ func (mock *QueryBuilderMock) BuildSearchQuery(ctx context.Context, q string, co
 		Sort:         sort,
 		Limit:        limit,
 		Offset:       offset,
+		Topic:        topic,
 	}
 	lockQueryBuilderMockBuildSearchQuery.Lock()
 	mock.calls.BuildSearchQuery = append(mock.calls.BuildSearchQuery, callInfo)
 	lockQueryBuilderMockBuildSearchQuery.Unlock()
-	return mock.BuildSearchQueryFunc(ctx, q, contentTypes, sort, limit, offset)
+	return mock.BuildSearchQueryFunc(ctx, q, contentTypes, sort, limit, offset, topic)
 }
 
 // BuildSearchQueryCalls gets all the calls that were made to BuildSearchQuery.
@@ -269,6 +273,7 @@ func (mock *QueryBuilderMock) BuildSearchQueryCalls() []struct {
 	Sort         string
 	Limit        int
 	Offset       int
+	Topic        []string
 } {
 	var calls []struct {
 		Ctx          context.Context
@@ -277,6 +282,7 @@ func (mock *QueryBuilderMock) BuildSearchQueryCalls() []struct {
 		Sort         string
 		Limit        int
 		Offset       int
+		Topic        []string
 	}
 	lockQueryBuilderMockBuildSearchQuery.RLock()
 	calls = mock.calls.BuildSearchQuery

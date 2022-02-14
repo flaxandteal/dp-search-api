@@ -72,7 +72,7 @@ func SetupSearch(pathToTemplates string) (*template.Template, error) {
 }
 
 // BuildSearchQuery creates an elastic search query from the provided search parameters
-func (sb *Builder) BuildSearchQuery(ctx context.Context, q, contentTypes, sort string, limit, offset int) ([]byte, error) {
+func (sb *Builder) BuildSearchQuery(ctx context.Context, q, contentTypes, sort string, limit, offset int, topic []string) ([]byte, error) {
 	reqParams := searchRequest{
 		Term:             q,
 		From:             offset,
@@ -85,6 +85,7 @@ func (sb *Builder) BuildSearchQuery(ctx context.Context, q, contentTypes, sort s
 		FilterOnLatest:   false,
 		Upcoming:         false,
 		Published:        false,
+		URIPrefix:        "/" + strings.Join(topic, "/"),
 		Now:              time.Now().UTC().Format(time.RFC3339),
 	}
 
