@@ -2,8 +2,8 @@ package api
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -54,7 +54,7 @@ func paramGetBool(params url.Values, key string, defaultValue bool) bool {
 }
 
 type Category struct {
-	S float64 `json:"s"`
+	S float64  `json:"s"`
 	C []string `json:"c"`
 }
 
@@ -69,18 +69,23 @@ func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSea
 		sort := paramGet(params, "sort", "relevance")
 
 		client := &http.Client{}
-		uri := "http://localhost:80/categories?query=%s" + url.QueryEscape(q)
+		uri := "http://localhost:8080/search?q=%s" + url.QueryEscape(q)
 		resp, err := client.Get(uri)
-		var categories []Category
-		categories = []Category{}
+
+		categories := make(map[string]interface{})
 		if err == nil {
 			defer resp.Body.Close()
 			body, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				log.Warn(ctx, "Could not unmarshal categories")
+			}
 
 			err = json.Unmarshal(body, &categories)
 			if err != nil {
 				log.Warn(ctx, "Could not unmarshal categories")
 			}
+
+			fmt.Println("This is Alpha hub response: \n", categories)
 		}
 
 		highlight := paramGetBool(params, "highlight", true)
@@ -127,9 +132,9 @@ func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSea
 
 		topic := []string{}
 		if use_categories != "1" && len(categories) > 0 {
-			topic = categories[0].C
-			log.Warn(ctx, topic[0])
+			topic = append(topic, "success")
 		}
+
 		formattedQuery, err := queryBuilder.BuildSearchQuery(ctx, q, typesParam, sort, limit, offset, topic)
 		if err != nil {
 			log.Error(ctx, "creation of search query failed", err, log.Data{"q": q, "sort": sort, "limit": limit, "offset": offset})
