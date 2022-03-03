@@ -2,8 +2,8 @@ package api
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -54,12 +54,12 @@ func paramGetBool(params url.Values, key string, defaultValue bool) bool {
 }
 
 type Category struct {
-	S float64 `json:"s"`
+	S float64  `json:"s"`
 	C []string `json:"c"`
 }
 
 // SearchHandlerFunc returns a http handler function handling search api requests.
-func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSearcher, transformer ResponseTransformer) http.HandlerFunc {
+func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSearcher, FfFasttextApi string, transformer ResponseTransformer) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
 		params := req.URL.Query()
@@ -69,7 +69,7 @@ func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSea
 		sort := paramGet(params, "sort", "relevance")
 
 		client := &http.Client{}
-		uri := "http://localhost:80/categories?query=%s" + url.QueryEscape(q)
+		uri := FfFasttextApi + "/categories?query=%s" + url.QueryEscape(q)
 		resp, err := client.Get(uri)
 		var categories []Category
 		categories = []Category{}

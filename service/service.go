@@ -112,7 +112,7 @@ func Run(ctx context.Context, cfg *config.Config, serviceList *ExternalServiceLi
 	healthCheck.Start(ctx)
 
 	// Create Search API
-	searchAPI, err := api.NewSearchAPI(router, dpESClient, deprecatedESClient, queryBuilder, transformerClient, permissions)
+	searchAPI, err := api.NewSearchAPI(router, cfg, dpESClient, deprecatedESClient, queryBuilder, transformerClient, permissions)
 	if err != nil {
 		log.Fatal(ctx, "error initialising API", err)
 		return nil, err
