@@ -13,7 +13,7 @@ COPY . .
 
 RUN make build && mv build/$(go env GOOS)-$(go env GOARCH)/* ./build
 
-FROM alpine
+FROM alpine:3.15.0
 WORKDIR /app
 COPY --from=builder /app/build/dp-search-api .
 ADD templates /app/templates
