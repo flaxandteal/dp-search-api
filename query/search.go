@@ -25,6 +25,8 @@ type searchRequest struct {
 	ReleasedAfter       string
 	ReleasedBefore      string
 	URIPrefix           string
+	NlpCategory         string
+	NlpSubCategory      string
 	Topic               []string
 	TopicWildcard       []string
 	Upcoming            bool
@@ -51,6 +53,7 @@ func SetupSearch(pathToTemplates string) (*template.Template, error) {
 		pathToTemplates+"templates/search/coreQuery.tmpl",
 		pathToTemplates+"templates/search/weightedQuery.tmpl",
 		pathToTemplates+"templates/search/countFilterLatest.tmpl",
+		pathToTemplates+"templates/search/nlpCategory.tmpl",
 		pathToTemplates+"templates/search/contentFilters.tmpl",
 		pathToTemplates+"templates/search/contentFilterUpcoming.tmpl",
 		pathToTemplates+"templates/search/contentFilterPublished.tmpl",
@@ -85,8 +88,14 @@ func (sb *Builder) BuildSearchQuery(ctx context.Context, q, contentTypes, sort s
 		FilterOnLatest:   false,
 		Upcoming:         false,
 		Published:        false,
-		URIPrefix:        "/" + strings.Join(topic, "/"),
+		NlpCategory:      "",
+		NlpSubCategory:   "",
 		Now:              time.Now().UTC().Format(time.RFC3339),
+	}
+
+	if (len(topic) > 1) {
+		reqParams.NlpCategory = topic[0];
+		reqParams.NlpSubCategory = topic[1];
 	}
 
 	var doc bytes.Buffer

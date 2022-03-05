@@ -110,21 +110,22 @@ func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSea
 		params := req.URL.Query()
 
 		q := params.Get("q")
-		use_categories := params.Get("c")
+		useCategories := params.Get("c")
 		sort := paramGet(params, "sort", "relevance")
 
 		client := &http.Client{}
-		uri := NlpHubApi + "/search?q=%s" + url.QueryEscape(q)
+		uri := NlpHubApi + "/search?q=" + url.QueryEscape(q)
 		resp, err := client.Get(uri)
-		var categories []Category
-		categories = []Category{}
+		var nlpHub NlpResponse
+		nlpHub = NlpResponse{}
 		if err == nil {
 			defer resp.Body.Close()
 			body, err := ioutil.ReadAll(resp.Body)
 
-			err = json.Unmarshal(body, &categories)
+			err = json.Unmarshal(body, &nlpHub)
 			if err != nil {
-				log.Warn(ctx, "Could not unmarshal categories")
+				log.Error(ctx, "Unmarshalling NLP query failed", err)
+				log.Warn(ctx, "Could not unmarshal NLP hub results")
 			}
 		}
 
@@ -171,9 +172,10 @@ func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSea
 		typesParam := paramGet(params, "content_type", defaultContentTypes)
 
 		topic := []string{}
-		if use_categories != "1" && len(categories) > 0 {
-			topic = categories[0].C
+		if useCategories == "1" && len(nlpHub.Category) > 0 {
+			topic = nlpHub.Category[0].C
 			log.Warn(ctx, topic[0])
+			log.Warn(ctx, topic[1])
 		}
 		formattedQuery, err := queryBuilder.BuildSearchQuery(ctx, q, typesParam, sort, limit, offset, topic)
 		if err != nil {

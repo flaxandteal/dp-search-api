@@ -6,6 +6,10 @@
  "size" : {{.Size}},
  "query" : {
      "bool" : {
+     "should": [
+             {{template "nlpCategory.tmpl" .}}
+        ],
+
        "must" : {
                   {{- if .Term}}
                       {{- template "weightedQuery.tmpl" .}}
