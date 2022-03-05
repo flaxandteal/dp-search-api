@@ -53,13 +53,58 @@ func paramGetBool(params url.Values, key string, defaultValue bool) bool {
 	return value == "true"
 }
 
+type Location struct {
+	Codes []string `json:"codes"`
+	Encoding string `json:"encoding"`
+	Id string `json:"id"`
+	Names []string `json:"names"`
+	Score int `json:"score"`
+}
+
+type ScrubberFilters struct {
+	Sic int `json:"sic"`
+}
+
+type ScrubberResults struct {
+	Areas []string `json:"areas"`
+	Industries []string `json:"industries"`
+	Time string `json:"time"`
+}
+
+type ScrubberResponse struct {
+	Query string `json:"query"`
+	Results ScrubberResults `json:"results"`
+}
+
+type BerlinQuery struct {
+	Codes []string `json:"codes"`
+	ExactMatches []string `json:"exact_matches"`
+	Normalized string `json:"normalized"`
+	NotExactMatches []string `json:"not_exact_matches"`
+	Raw string `json:"raw"`
+	StopWords []string `json:"stop_words"`
+}
+
+
+type BerlinResponse struct {
+	Query BerlinQuery `json:"query"`
+	Results []Location `json:"results"`
+	Time string `json:"time"`
+}
+
+type NlpResponse struct {
+	Scrubber ScrubberResponse `json:"Scrubber"`
+	Berlin BerlinResponse `json:"Berlin"`
+	Category []Category `json:"Category"`
+}
+
 type Category struct {
 	S float64  `json:"s"`
 	C []string `json:"c"`
 }
 
 // SearchHandlerFunc returns a http handler function handling search api requests.
-func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSearcher, FfFasttextApi string, transformer ResponseTransformer) http.HandlerFunc {
+func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSearcher, NlpHubApi string, transformer ResponseTransformer) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
 		params := req.URL.Query()
@@ -69,7 +114,7 @@ func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSea
 		sort := paramGet(params, "sort", "relevance")
 
 		client := &http.Client{}
-		uri := FfFasttextApi + "/categories?query=%s" + url.QueryEscape(q)
+		uri := NlpHubApi + "/search?q=%s" + url.QueryEscape(q)
 		resp, err := client.Get(uri)
 		var categories []Category
 		categories = []Category{}

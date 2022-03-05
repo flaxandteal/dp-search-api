@@ -70,7 +70,7 @@ func NewSearchAPI(router *mux.Router, cfg *config.Config, dpESClient *dpelastic.
 		permissions:        permissions,
 	}
 
-	router.HandleFunc("/search", SearchHandlerFunc(queryBuilder, api.deprecatedESClient, cfg.FfFasttextApiUrl, api.Transformer)).Methods("GET")
+	router.HandleFunc("/search", SearchHandlerFunc(queryBuilder, api.deprecatedESClient, cfg.NlpHubApiUrl, api.Transformer)).Methods("GET")
 	router.HandleFunc("/timeseries/{cdid}", TimeseriesLookupHandlerFunc(api.deprecatedESClient)).Methods("GET")
 	router.HandleFunc("/data", DataLookupHandlerFunc(api.deprecatedESClient)).Methods("GET")
 

@@ -13,7 +13,7 @@ type Config struct {
 	AwsService                 string        `envconfig:"AWS_SERVICE"`
 	BindAddr                   string        `envconfig:"BIND_ADDR"`
 	ElasticSearchAPIURL        string        `envconfig:"ELASTIC_SEARCH_URL"`
-	FfFasttextApiUrl           string        `envconfig:"FF_FASTTEXT_API_URL"`
+	NlpHubApiUrl               string        `envconfig:"NLP_HUB_API_URL"`
 	GracefulShutdownTimeout    time.Duration `envconfig:"GRACEFUL_SHUTDOWN_TIMEOUT"`
 	SignElasticsearchRequests  bool          `envconfig:"SIGN_ELASTICSEARCH_REQUESTS"`
 	HealthCheckCriticalTimeout time.Duration `envconfig:"HEALTHCHECK_CRITICAL_TIMEOUT"`
@@ -34,7 +34,7 @@ func Get() (*Config, error) {
 		AwsService:                 "es",
 		BindAddr:                   ":23900",
 		ElasticSearchAPIURL:        "http://localhost:9200",
-		FfFasttextApiUrl:           "http://localhost:3003",
+		NlpHubApiUrl:               "http://localhost:8080",
 		GracefulShutdownTimeout:    5 * time.Second,
 		SignElasticsearchRequests:  false,
 		HealthCheckCriticalTimeout: 90 * time.Second,
