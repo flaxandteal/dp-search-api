@@ -11,6 +11,8 @@ RUN go mod download
 FROM chef as builder
 COPY . .
 
+RUN echo $(go env GOOS)
+RUN echo $(go env GOARCH)
 RUN make build && mv build/$(go env GOOS)-$(go env GOARCH)/* ./build
 
 FROM alpine:3.15.0
