@@ -1,25 +1,22 @@
-FROM golang:1.17-alpine as chef
-WORKDIR /app
+FROM golang:1.17.2 as build
 
-RUN apk update && apk add build-base bash git
+ADD . /dp-search-api
+WORKDIR /dp-search-api
 
-# Install dependencies - this is the caching Docker layer
-COPY go.mod .
-COPY go.sum .
-RUN go mod download
+RUN go get -d
 
-FROM chef as builder
-COPY . .
-
-RUN echo $(go env GOOS)
-RUN echo $(go env GOARCH)
 RUN make build && mv build/$(go env GOOS)-$(go env GOARCH)/* ./build
 
-FROM alpine:3.15.0
+FROM golang:1.17.2
+
+COPY --from=build /dp-search-api/build/dp-search-api /dp-search-api
+
+RUN mkdir /app
+
 WORKDIR /app
-COPY --from=builder /app/build/dp-search-api .
+
 ADD templates /app/templates
 
-EXPOSE 23900
+EXPOSE 8080
 
-CMD [ "./dp-search-api" ]
+CMD [ "/dp-search-api" ]
