@@ -18,6 +18,5 @@ before_script:
 build:
   image: docker:20.10
   script:
-    # actual build
     - docker build -t $IMAGE_TAG -t $IMAGE_SHA_TAG -t $LATEST_TAG .
     - docker image push --all-tags $CI_REGISTRY_IMAGE
