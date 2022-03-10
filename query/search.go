@@ -27,6 +27,8 @@ type searchRequest struct {
 	URIPrefix           string
 	NlpCategory         string
 	NlpSubCategory      string
+	NlpCategoryWeighting float32
+	NlpSubdivisionWords string
 	Topic               []string
 	TopicWildcard       []string
 	Upcoming            bool
@@ -74,8 +76,28 @@ func SetupSearch(pathToTemplates string) (*template.Template, error) {
 	return templates, err
 }
 
+func (sb *Builder) AddNlpCategorySearch(category string, subCategory string, categoryWeighting float32) {
+	if sb.nlpCriteria == nil {
+		sb.nlpCriteria = new(NlpCriteria)
+	}
+
+	sb.nlpCriteria.UseCategory = true
+	sb.nlpCriteria.Category = category
+	sb.nlpCriteria.SubCategory = subCategory
+	sb.nlpCriteria.CategoryWeighting = categoryWeighting
+}
+
+func (sb *Builder) AddNlpSubdivisionSearch(subdivisionWords string) {
+	if sb.nlpCriteria == nil {
+		sb.nlpCriteria = new(NlpCriteria)
+	}
+
+	sb.nlpCriteria.UseSubdivision = true
+	sb.nlpCriteria.SubdivisionWords = subdivisionWords
+}
+
 // BuildSearchQuery creates an elastic search query from the provided search parameters
-func (sb *Builder) BuildSearchQuery(ctx context.Context, q, contentTypes, sort string, limit, offset int, topic []string) ([]byte, error) {
+func (sb *Builder) BuildSearchQuery(ctx context.Context, q, contentTypes, sort string, limit, offset int) ([]byte, error) {
 	reqParams := searchRequest{
 		Term:             q,
 		From:             offset,
@@ -88,14 +110,19 @@ func (sb *Builder) BuildSearchQuery(ctx context.Context, q, contentTypes, sort s
 		FilterOnLatest:   false,
 		Upcoming:         false,
 		Published:        false,
-		NlpCategory:      "",
-		NlpSubCategory:   "",
 		Now:              time.Now().UTC().Format(time.RFC3339),
 	}
 
-	if (len(topic) > 1) {
-		reqParams.NlpCategory = topic[0];
-		reqParams.NlpSubCategory = topic[1];
+	if sb.nlpCriteria != nil {
+		if sb.nlpCriteria.UseCategory {
+			reqParams.NlpCategory = sb.nlpCriteria.Category;
+			reqParams.NlpSubCategory = sb.nlpCriteria.SubCategory;
+			reqParams.NlpCategoryWeighting = sb.nlpCriteria.CategoryWeighting;
+		}
+
+		if sb.nlpCriteria.UseSubdivision {
+			reqParams.NlpSubdivisionWords = sb.nlpCriteria.SubdivisionWords;
+		}
 	}
 
 	var doc bytes.Buffer

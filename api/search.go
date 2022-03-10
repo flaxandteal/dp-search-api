@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -58,6 +59,8 @@ type Location struct {
 	Encoding string `json:"encoding"`
 	Id string `json:"id"`
 	Names []string `json:"names"`
+	Subdivision []string `json:"state"`
+	State []string `json:"subdiv"`
 	Score int `json:"score"`
 }
 
@@ -92,6 +95,10 @@ type BerlinResponse struct {
 	Time string `json:"time"`
 }
 
+type NlpSettings struct {
+	CategoryWeighting float32 `json:"categoryWeighting"`
+}
+
 type NlpResponse struct {
 	Scrubber ScrubberResponse `json:"Scrubber"`
 	Berlin BerlinResponse `json:"Berlin"`
@@ -103,31 +110,59 @@ type Category struct {
 	C []string `json:"c"`
 }
 
+func AddNlpToSearch(ctx context.Context, queryBuilder QueryBuilder, q string, nlpHubApi string, nlpSettings NlpSettings) {
+	client := &http.Client{}
+	uri := nlpHubApi + "/search?q=" + url.QueryEscape(q)
+	resp, err := client.Get(uri)
+	var nlpHub NlpResponse
+	nlpHub = NlpResponse{}
+	if err == nil {
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+
+		err = json.Unmarshal(body, &nlpHub)
+		if err != nil {
+			log.Error(ctx, "Unmarshalling NLP query failed", err)
+			log.Warn(ctx, "Could not unmarshal NLP hub results")
+		}
+	}
+
+	if len(nlpHub.Category) > 0 {
+		queryBuilder.AddNlpCategorySearch(
+			nlpHub.Category[0].C[0],
+			nlpHub.Category[0].C[1],
+			nlpSettings.CategoryWeighting,
+		)
+	}
+
+	if len(nlpHub.Berlin.Results) > 0 && len(nlpHub.Berlin.Results[0].Subdivision) == 2 {
+		queryBuilder.AddNlpSubdivisionSearch(nlpHub.Berlin.Results[0].Subdivision[1])
+	}
+}
+
 // SearchHandlerFunc returns a http handler function handling search api requests.
-func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSearcher, NlpHubApi string, transformer ResponseTransformer) http.HandlerFunc {
+func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSearcher, nlpHubApi string, nlpHubSettings string, transformer ResponseTransformer) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
 		params := req.URL.Query()
 
 		q := params.Get("q")
-		useCategories := params.Get("c")
-		sort := paramGet(params, "sort", "relevance")
+		if params.Get("c") == "1" {
+			nlpSettings := NlpSettings {}
 
-		client := &http.Client{}
-		uri := NlpHubApi + "/search?q=" + url.QueryEscape(q)
-		resp, err := client.Get(uri)
-		var nlpHub NlpResponse
-		nlpHub = NlpResponse{}
-		if err == nil {
-			defer resp.Body.Close()
-			body, err := ioutil.ReadAll(resp.Body)
+			// Load default settings
+			// FIXME: move this somewhere better
+			json.Unmarshal([]byte(nlpHubSettings), &nlpSettings)
 
-			err = json.Unmarshal(body, &nlpHub)
-			if err != nil {
-				log.Error(ctx, "Unmarshalling NLP query failed", err)
-				log.Warn(ctx, "Could not unmarshal NLP hub results")
+			// Load settings for this request
+			nlpSettingsRequest := params.Get("nlpSettings")
+			log.Warn(ctx, nlpSettingsRequest)
+			if nlpSettingsRequest != "" {
+				json.Unmarshal([]byte(nlpSettingsRequest), &nlpSettings)
 			}
+			AddNlpToSearch(ctx, queryBuilder, q, nlpHubApi, nlpSettings)
 		}
+		sort := paramGet(params, "sort", "relevance")
 
 		highlight := paramGetBool(params, "highlight", true)
 
@@ -171,13 +206,7 @@ func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSea
 
 		typesParam := paramGet(params, "content_type", defaultContentTypes)
 
-		topic := []string{}
-		if useCategories == "1" && len(nlpHub.Category) > 0 {
-			topic = nlpHub.Category[0].C
-			log.Warn(ctx, topic[0])
-			log.Warn(ctx, topic[1])
-		}
-		formattedQuery, err := queryBuilder.BuildSearchQuery(ctx, q, typesParam, sort, limit, offset, topic)
+		formattedQuery, err := queryBuilder.BuildSearchQuery(ctx, q, typesParam, sort, limit, offset)
 		if err != nil {
 			log.Error(ctx, "creation of search query failed", err, log.Data{"q": q, "sort": sort, "limit": limit, "offset": offset})
 			http.Error(w, "Failed to create search query", http.StatusInternalServerError)

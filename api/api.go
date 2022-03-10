@@ -41,7 +41,9 @@ type ElasticSearcher interface {
 
 // QueryBuilder provides methods for the search package
 type QueryBuilder interface {
-	BuildSearchQuery(ctx context.Context, q, contentTypes, sort string, limit, offset int, topic []string) ([]byte, error)
+	AddNlpCategorySearch(category string, subCategory string, categoryWeighting float32)
+	AddNlpSubdivisionSearch(subdivisionWords string)
+	BuildSearchQuery(ctx context.Context, q, contentTypes, sort string, limit, offset int) ([]byte, error)
 }
 
 // ResponseTransformer provides methods for the transform package
@@ -70,7 +72,7 @@ func NewSearchAPI(router *mux.Router, cfg *config.Config, dpESClient *dpelastic.
 		permissions:        permissions,
 	}
 
-	router.HandleFunc("/search", SearchHandlerFunc(queryBuilder, api.deprecatedESClient, cfg.NlpHubApiUrl, api.Transformer)).Methods("GET")
+	router.HandleFunc("/search", SearchHandlerFunc(queryBuilder, api.deprecatedESClient, cfg.NlpHubApiUrl, cfg.NlpHubSettings, api.Transformer)).Methods("GET")
 	router.HandleFunc("/timeseries/{cdid}", TimeseriesLookupHandlerFunc(api.deprecatedESClient)).Methods("GET")
 	router.HandleFunc("/data", DataLookupHandlerFunc(api.deprecatedESClient)).Methods("GET")
 

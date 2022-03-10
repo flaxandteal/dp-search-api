@@ -211,7 +211,7 @@ var _ QueryBuilder = &QueryBuilderMock{}
 //     }
 type QueryBuilderMock struct {
 	// BuildSearchQueryFunc mocks the BuildSearchQuery method.
-	BuildSearchQueryFunc func(ctx context.Context, q string, contentTypes string, sort string, limit int, offset int, topic []string) ([]byte, error)
+	BuildSearchQueryFunc func(ctx context.Context, q string, contentTypes string, sort string, limit int, offset int) ([]byte, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -235,8 +235,16 @@ type QueryBuilderMock struct {
 	}
 }
 
+func (mock *QueryBuilderMock) AddNlpCategorySearch(category string, subCategory string, categoryWeighting float32) {
+	// FIXME: To mock
+}
+
+func (mock *QueryBuilderMock) AddNlpSubdivisionSearch(subdivisionWords string) {
+	// FIXME: To mock
+}
+
 // BuildSearchQuery calls BuildSearchQueryFunc.
-func (mock *QueryBuilderMock) BuildSearchQuery(ctx context.Context, q string, contentTypes string, sort string, limit int, offset int, topic []string) ([]byte, error) {
+func (mock *QueryBuilderMock) BuildSearchQuery(ctx context.Context, q string, contentTypes string, sort string, limit int, offset int) ([]byte, error) {
 	if mock.BuildSearchQueryFunc == nil {
 		panic("QueryBuilderMock.BuildSearchQueryFunc: method is nil but QueryBuilder.BuildSearchQuery was just called")
 	}
@@ -255,12 +263,11 @@ func (mock *QueryBuilderMock) BuildSearchQuery(ctx context.Context, q string, co
 		Sort:         sort,
 		Limit:        limit,
 		Offset:       offset,
-		Topic:        topic,
 	}
 	lockQueryBuilderMockBuildSearchQuery.Lock()
 	mock.calls.BuildSearchQuery = append(mock.calls.BuildSearchQuery, callInfo)
 	lockQueryBuilderMockBuildSearchQuery.Unlock()
-	return mock.BuildSearchQueryFunc(ctx, q, contentTypes, sort, limit, offset, topic)
+	return mock.BuildSearchQueryFunc(ctx, q, contentTypes, sort, limit, offset)
 }
 
 // BuildSearchQueryCalls gets all the calls that were made to BuildSearchQuery.
