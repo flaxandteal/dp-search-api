@@ -12,7 +12,18 @@ import (
 
 // Builder represents an instance of a query builder
 type Builder struct {
+	nlpCriteria *NlpCriteria
 	searchTemplates *template.Template
+}
+
+type NlpCriteria struct {
+	UseCategory       bool
+	Category          string
+	SubCategory       string
+	CategoryWeighting float32
+
+	UseSubdivision    bool
+	SubdivisionWords  string
 }
 
 // NewQueryBuilder loads the elastic search templates and returns a query builder instance
@@ -28,7 +39,7 @@ func NewQueryBuilder(pathToTemplates string) (*Builder, error) {
 
 // FormatMultiQuery minifies and reformats an elasticsearch MultiQuery
 func FormatMultiQuery(rawQuery []byte) ([]byte, error) {
-	//Is minify thread Safe? can I put this as a global?
+	// Is minify thread Safe? can I put this as a global?
 	m := minify.New()
 	m.AddFuncRegexp(regexp.MustCompile("[/+]js$"), js.Minify)
 
@@ -37,7 +48,6 @@ func FormatMultiQuery(rawQuery []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	//Put new lines in for ElasticSearch to determine the headers and the queries are detected
+	// Put new lines in for ElasticSearch to determine the headers and the queries are detected
 	return bytes.Replace(linearQuery, []byte("$$"), []byte("\n"), -1), nil
-
 }

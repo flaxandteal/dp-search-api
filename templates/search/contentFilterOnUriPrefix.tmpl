@@ -1,4 +1,11 @@
 
+      {{if .URIPrefix}}
+          { "prefix" :
+                { "uri" : { "value": "{{.URIPrefix}}", "boost": 10.0 } }
+          }
+        {{if or .Topic .TopicWildcard}},{{end}}
+      {{end}}
+
       {{if .UriPrefix}}
           { "prefix" :
                 { "uri" : "{{.UriPrefix}}" }

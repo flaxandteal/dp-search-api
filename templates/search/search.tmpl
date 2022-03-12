@@ -3,15 +3,3 @@
     {{- template "contentHeader.tmpl" .}}$$
     {{- template "contentQuery.tmpl" .}}$$
 {{- end}}
-{{- if .HasQuery "counts" }}
-    {{- template "countHeader.tmpl" .}}$$
-    {{- template "countQuery.tmpl" .}}$$
-{{- end}}
-{{- if .HasQuery "featured" }}
-    {{- template "featuredHeader.tmpl" .}}$$
-    {{- template "featuredQuery.tmpl" .}}$$
-{{- end}}
-{{- if .HasQuery "departments" }}
-    {{- template "departmentsHeader.tmpl" .}}$$
-    {{- template "departmentsQuery.tmpl" .}}$$
-{{- end}}

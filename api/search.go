@@ -1,8 +1,10 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -52,13 +54,114 @@ func paramGetBool(params url.Values, key string, defaultValue bool) bool {
 	return value == "true"
 }
 
+type Location struct {
+	Codes []string `json:"codes"`
+	Encoding string `json:"encoding"`
+	Id string `json:"id"`
+	Names []string `json:"names"`
+	Subdivision []string `json:"state"`
+	State []string `json:"subdiv"`
+	Score int `json:"score"`
+}
+
+type ScrubberFilters struct {
+	Sic int `json:"sic"`
+}
+
+type ScrubberResults struct {
+	Areas []string `json:"areas"`
+	Industries []string `json:"industries"`
+	Time string `json:"time"`
+}
+
+type ScrubberResponse struct {
+	Query string `json:"query"`
+	Results ScrubberResults `json:"results"`
+}
+
+type BerlinQuery struct {
+	Codes []string `json:"codes"`
+	ExactMatches []string `json:"exact_matches"`
+	Normalized string `json:"normalized"`
+	NotExactMatches []string `json:"not_exact_matches"`
+	Raw string `json:"raw"`
+	StopWords []string `json:"stop_words"`
+}
+
+
+type BerlinResponse struct {
+	Query BerlinQuery `json:"query"`
+	Results []Location `json:"results"`
+	Time string `json:"time"`
+}
+
+type NlpSettings struct {
+	CategoryWeighting float32 `json:"categoryWeighting"`
+}
+
+type NlpResponse struct {
+	Scrubber ScrubberResponse `json:"Scrubber"`
+	Berlin BerlinResponse `json:"Berlin"`
+	Category []Category `json:"Category"`
+}
+
+type Category struct {
+	S float64  `json:"s"`
+	C []string `json:"c"`
+}
+
+func AddNlpToSearch(ctx context.Context, queryBuilder QueryBuilder, q string, nlpHubApi string, nlpSettings NlpSettings) {
+	client := &http.Client{}
+	uri := nlpHubApi + "/search?q=" + url.QueryEscape(q)
+	resp, err := client.Get(uri)
+	var nlpHub NlpResponse
+	nlpHub = NlpResponse{}
+	if err == nil {
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+
+		err = json.Unmarshal(body, &nlpHub)
+		if err != nil {
+			log.Error(ctx, "Unmarshalling NLP query failed", err)
+			log.Warn(ctx, "Could not unmarshal NLP hub results")
+		}
+	}
+
+	if len(nlpHub.Category) > 0 {
+		queryBuilder.AddNlpCategorySearch(
+			nlpHub.Category[0].C[0],
+			nlpHub.Category[0].C[1],
+			nlpSettings.CategoryWeighting,
+		)
+	}
+
+	if len(nlpHub.Berlin.Results) > 0 && len(nlpHub.Berlin.Results[0].Subdivision) == 2 {
+		queryBuilder.AddNlpSubdivisionSearch(nlpHub.Berlin.Results[0].Subdivision[1])
+	}
+}
+
 // SearchHandlerFunc returns a http handler function handling search api requests.
-func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSearcher, transformer ResponseTransformer) http.HandlerFunc {
+func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSearcher, nlpHubApi string, nlpHubSettings string, transformer ResponseTransformer) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
 		params := req.URL.Query()
 
 		q := params.Get("q")
+		if params.Get("c") == "1" {
+			nlpSettings := NlpSettings {}
+
+			// Load default settings
+			// FIXME: move this somewhere better
+			json.Unmarshal([]byte(nlpHubSettings), &nlpSettings)
+
+			// Load settings for this request
+			nlpSettingsRequest := params.Get("nlpSettings")
+			log.Warn(ctx, nlpSettingsRequest)
+			if nlpSettingsRequest != "" {
+				json.Unmarshal([]byte(nlpSettingsRequest), &nlpSettings)
+			}
+			AddNlpToSearch(ctx, queryBuilder, q, nlpHubApi, nlpSettings)
+		}
 		sort := paramGet(params, "sort", "relevance")
 
 		highlight := paramGetBool(params, "highlight", true)
@@ -117,7 +220,7 @@ func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSea
 			return
 		}
 
-		if !json.Valid([]byte(responseData)) {
+		if !json.Valid(responseData) {
 			log.Error(ctx, "elastic search returned invalid JSON for search query", errors.New("elastic search returned invalid JSON for search query"))
 			http.Error(w, "Failed to process search query", http.StatusInternalServerError)
 			return
@@ -139,7 +242,6 @@ func SearchHandlerFunc(queryBuilder QueryBuilder, elasticSearchClient ElasticSea
 			http.Error(w, "Failed to write http response", http.StatusInternalServerError)
 			return
 		}
-
 	}
 }
 

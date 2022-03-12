@@ -4,6 +4,7 @@ package api
 
 import (
 	"context"
+	"github.com/ONSdigital/dp-search-api/config"
 	"net/http"
 
 	"github.com/ONSdigital/dp-authorisation/auth"
@@ -16,7 +17,7 @@ var (
 	update = auth.Permissions{Update: true}
 )
 
-//SearchAPI provides an API around elasticseach
+// SearchAPI provides an API around elasticseach
 type SearchAPI struct {
 	Router             *mux.Router
 	QueryBuilder       QueryBuilder
@@ -36,11 +37,12 @@ type AuthHandler interface {
 type ElasticSearcher interface {
 	Search(ctx context.Context, index string, docType string, request []byte) ([]byte, error)
 	MultiSearch(ctx context.Context, index string, docType string, request []byte) ([]byte, error)
-	GetStatus(ctx context.Context) ([]byte, error)
 }
 
 // QueryBuilder provides methods for the search package
 type QueryBuilder interface {
+	AddNlpCategorySearch(category string, subCategory string, categoryWeighting float32)
+	AddNlpSubdivisionSearch(subdivisionWords string)
 	BuildSearchQuery(ctx context.Context, q, contentTypes, sort string, limit, offset int) ([]byte, error)
 }
 
@@ -50,7 +52,7 @@ type ResponseTransformer interface {
 }
 
 // NewSearchAPI returns a new Search API struct after registering the routes
-func NewSearchAPI(router *mux.Router, dpESClient *dpelastic.Client, deprecatedESClient ElasticSearcher, queryBuilder QueryBuilder, transformer ResponseTransformer, permissions AuthHandler) (*SearchAPI, error) {
+func NewSearchAPI(router *mux.Router, cfg *config.Config, dpESClient *dpelastic.Client, deprecatedESClient ElasticSearcher, queryBuilder QueryBuilder, transformer ResponseTransformer, permissions AuthHandler) (*SearchAPI, error) {
 	errData := SetupData()
 	if errData != nil {
 		return nil, errors.Wrap(errData, "Failed to setup data templates")
@@ -70,7 +72,7 @@ func NewSearchAPI(router *mux.Router, dpESClient *dpelastic.Client, deprecatedES
 		permissions:        permissions,
 	}
 
-	router.HandleFunc("/search", SearchHandlerFunc(queryBuilder, api.deprecatedESClient, api.Transformer)).Methods("GET")
+	router.HandleFunc("/search", SearchHandlerFunc(queryBuilder, api.deprecatedESClient, cfg.NlpHubApiUrl, cfg.NlpHubSettings, api.Transformer)).Methods("GET")
 	router.HandleFunc("/timeseries/{cdid}", TimeseriesLookupHandlerFunc(api.deprecatedESClient)).Methods("GET")
 	router.HandleFunc("/data", DataLookupHandlerFunc(api.deprecatedESClient)).Methods("GET")
 
