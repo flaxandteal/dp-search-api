@@ -16,4 +16,4 @@ popd
 echo $(pwd)
 ls $(pwd)
 echo $(pwd)/build
-ls $(pwd)
+ls $(pwd)/build
