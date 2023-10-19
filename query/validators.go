@@ -39,7 +39,6 @@ func NewSearchQueryParamValidator() ParamValidator {
 	return ParamValidator{
 		"limit":  validateLimit,
 		"offset": validateOffset,
-		"date":   validateDate,
 		"sort": func(param string) (interface{}, error) {
 			return param, nil
 		},

@@ -33,8 +33,6 @@ type SearchRequest struct {
 	Types               []string
 	Index               string
 	SortBy              string
-	ReleasedAfter       Date
-	ReleasedBefore      Date
 	AggregationField    string // Deprecated (used only in legacy templates for aggregations)
 	AggregationFields   *AggregationFields
 	Highlight           bool
