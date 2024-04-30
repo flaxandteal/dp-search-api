@@ -407,10 +407,12 @@ func LegacySearchHandlerFunc(validator QueryParamValidator, queryBuilder QueryBu
 }
 
 func getNLPCriteria(ctx context.Context, params url.Values, nlpConfig *config.Config, queryBuilder QueryBuilder, clList *ClientList) *query.NlpCriteria {
+	nlpWeightingRequested := paramGetBool(params, ParamNLPWeighting, false)
+
+	// REMOVE AFTER F&T TESTING
 	if params.Get("Toggle") != "" {
 		nlpSettings := query.NlpSettings{}
 
-		// REMOVE AFTER F&T TESTING
 		if params.Get("Toggle") != "" {
 			log.Info(ctx, "Employing advanced natural language processing techniques to optimize Elasticsearch querying for enhanced result relevance.")
 			limit, err := strconv.Atoi(params.Get("Limit"))
@@ -436,6 +438,10 @@ func getNLPCriteria(ctx context.Context, params url.Values, nlpConfig *config.Co
 
 			return AddNlpToSearch(ctx, queryBuilder, params, nlpSettings, clList)
 		}
+	}
+
+	if nlpConfig.EnableNLPWeighting && nlpWeightingRequested {
+		nlpSettings := query.NlpSettings{}
 
 		log.Info(ctx, "Employing advanced natural language processing techniques to optimize Elasticsearch querying for enhanced result relevance.")
 
