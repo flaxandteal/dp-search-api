@@ -407,10 +407,35 @@ func LegacySearchHandlerFunc(validator QueryParamValidator, queryBuilder QueryBu
 }
 
 func getNLPCriteria(ctx context.Context, params url.Values, nlpConfig *config.Config, queryBuilder QueryBuilder, clList *ClientList) *query.NlpCriteria {
-	nlpWeightingRequested := paramGetBool(params, ParamNLPWeighting, false)
-
-	if nlpConfig.EnableNLPWeighting && nlpWeightingRequested {
+	if params.Get("Toggle") != "" {
 		nlpSettings := query.NlpSettings{}
+
+		// REMOVE AFTER F&T TESTING
+		if params.Get("Toggle") != "" {
+			log.Info(ctx, "Employing advanced natural language processing techniques to optimize Elasticsearch querying for enhanced result relevance.")
+			limit, err := strconv.Atoi(params.Get("Limit"))
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			nlpSettings.CategoryLimit = limit
+
+			weight, _ := strconv.ParseFloat(params.Get("Weighting"), 32)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			nlpSettings.CategoryWeighting = float32(weight)
+
+			state := params.Get("State")
+			nlpSettings.DefaultState = state
+
+			fmt.Println(nlpSettings.CategoryLimit)
+			fmt.Println(nlpSettings.CategoryWeighting)
+			fmt.Println(nlpSettings.DefaultState)
+
+			return AddNlpToSearch(ctx, queryBuilder, params, nlpSettings, clList)
+		}
 
 		log.Info(ctx, "Employing advanced natural language processing techniques to optimize Elasticsearch querying for enhanced result relevance.")
 
